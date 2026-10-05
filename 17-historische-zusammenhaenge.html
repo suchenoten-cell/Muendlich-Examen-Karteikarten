@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Thema 17 &middot; Historische Zusammenhänge &amp; Berufsentwicklung</title>
+<style>
+  :root { --purple:#5a2657; --purple-dark:#3d1a3b; --pink:#e2266d; --cream:#faf7f8; --ink:#2a1a28; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; padding:0; min-height:100%; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:linear-gradient(160deg,var(--purple) 0%,var(--purple-dark) 100%); color:var(--ink); }
+  .wrap { min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:22px 16px 40px; }
+  .eyebrow { color:rgba(255,255,255,0.6); font-size:12px; letter-spacing:0.14em; text-transform:uppercase; font-weight:600; margin-bottom:4px; text-align:center; }
+  h1 { color:#fff; font-size:20px; font-weight:700; margin:0 0 18px; text-align:center; letter-spacing:-0.01em; max-width:420px; }
+  .progress-row { width:100%; max-width:420px; display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+  .progress-track { flex:1; height:6px; background:rgba(255,255,255,0.18); border-radius:999px; overflow:hidden; }
+  .progress-fill { height:100%; background:var(--pink); border-radius:999px; transition:width 0.35s ease; }
+  .progress-label { color:rgba(255,255,255,0.85); font-size:13px; font-weight:600; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .stage { width:100%; max-width:420px; perspective:1600px; display:flex; align-items:center; }
+  .card { width:100%; position:relative; cursor:pointer; transform-style:preserve-3d; transition:transform 0.5s cubic-bezier(.4,.2,.2,1), height 0.25s ease; }
+  .card.flipped { transform:rotateY(180deg); }
+  .face { position:absolute; top:0; left:0; width:100%; min-height:300px; backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:18px; padding:26px 24px 22px; display:flex; flex-direction:column; box-shadow:0 18px 40px rgba(0,0,0,0.28); }
+  .front { background:var(--cream); }
+  .back { background:#fff; transform:rotateY(180deg); border:2px solid var(--pink); }
+  .kicker { font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:16px; flex-shrink:0; }
+  .front .kicker { color:var(--purple); }
+  .back .kicker { color:var(--pink); }
+  .body-text { font-size:18px; line-height:1.45; font-weight:600; color:var(--ink); flex:1; display:flex; align-items:center; overflow-wrap:break-word; word-break:break-word; hyphens:auto; }
+  .back .body-text { font-size:16px; font-weight:500; color:#3a2438; line-height:1.5; }
+  .hint { text-align:center; font-size:12px; margin-top:16px; font-weight:600; flex-shrink:0; }
+  .front .hint { color:rgba(90,38,87,0.5); }
+  .back .hint { color:rgba(90,38,87,0.4); }
+  .controls { width:100%; max-width:420px; display:flex; gap:12px; margin-top:20px; }
+  button { flex:1; padding:14px 10px; border-radius:12px; border:none; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; transition:opacity 0.2s,transform 0.1s; }
+  button:active { transform:scale(0.97); }
+  button:disabled { opacity:0.3; cursor:default; }
+  .btn-secondary { background:rgba(255,255,255,0.12); color:#fff; }
+  .btn-primary { background:var(--pink); color:#fff; }
+  .done { text-align:center; color:#fff; padding-top:40px; }
+  .done h2 { font-size:22px; margin-bottom:6px; }
+  .done p { color:rgba(255,255,255,0.7); font-size:14px; margin-bottom:20px; }
+  .restart { background:var(--pink); color:#fff; border:none; padding:12px 28px; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Examensvorbereitung m&uuml;ndlich</div>
+  <h1>Thema 17 &middot; Historische Zusammenhänge &amp; Berufsentwicklung</h1>
+  <div id="deck" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+    <div class="progress-row">
+      <span class="progress-label" id="counter">1 / 10</span>
+      <div class="progress-track"><div class="progress-fill" id="fill"></div></div>
+    </div>
+    <div class="stage">
+      <div class="card" id="card">
+        <div class="face front" id="frontFace">
+          <div class="kicker">Frage</div>
+          <div class="body-text" id="q-text"></div>
+          <div class="hint">Antippen zum Umdrehen</div>
+        </div>
+        <div class="face back" id="backFace">
+          <div class="kicker">Antwort</div>
+          <div class="body-text" id="a-text"></div>
+          <div class="hint">Antippen zum Zur&uuml;ckdrehen</div>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn-secondary" id="prevBtn">&larr; Zur&uuml;ck</button>
+      <button class="btn-primary" id="nextBtn">Weiter &rarr;</button>
+    </div>
+  </div>
+  <div id="doneScreen" style="display:none;" class="done">
+    <h2>Thema geschafft!</h2>
+    <p>Alle 10 Karten durchgearbeitet.</p>
+    <button class="restart" onclick="restart()">Nochmal von vorne</button>
+  </div>
+</div>
+<script>
+const cards = [{"q": "Warum ist die Auseinandersetzung mit Geschichte wichtig?", "a": "Fördert kritisches Denken, macht die Gegenwart verständlich, hilft Fehler zu vermeiden."}, {"q": "Wie sah Pflege in der Antike aus?", "a": "Grundstein moderner Pflege (z.B. Hippokrates), Patientenbeobachtung, Körperpflege."}, {"q": "Welche Rolle spielten Klöster im Mittelalter?", "a": "Klöster/Spitäler als Grundbaustein der Alten-/Krankenversorgung; Pflege durch Nächstenliebe."}, {"q": "Wer prägte die Pflegeausbildung in der frühen Neuzeit?", "a": "Theodor Fliedner (1836, erste Pflegeausbildung; Schwesternschaften/Orden)."}, {"q": "Was geschah mit der Pflege im Nationalsozialismus?", "a": "Steigender Stellenwert bei gleichzeitiger Instrumentalisierung, Mitwirkung an Gräueltaten."}, {"q": "Was passierte mit dem Krankenpflegegesetz nach dem 2. Weltkrieg?", "a": "1965 in Kraft getreten, 1985 überarbeitet; die Professionalisierung schritt voran."}, {"q": "Was kennzeichnet das 21. Jahrhundert?", "a": "Zunehmende Professionalisierung, 2004 Reform des Krankenpflegegesetzes, 2020 neues Pflegeberufegesetz."}, {"q": "Warum gilt Pflege historisch als Frauenberuf?", "a": "Mit der Neuzeit zunehmend als Frauenberuf charakterisiert (Fürsorglichkeit, Sanftmut) – Abwertung als Care-Arbeit."}, {"q": "Wann entstand die Altenpflege als eigener Beruf?", "a": "Erst 1976 erster Ausbildungsgang; galt lange als „Ersatzberuf“."}, {"q": "Welche Folge hatte die Geschlechtscharakterisierung?", "a": "Abgrenzung vom männlich geprägten Arztberuf, Abwertung und lange fehlende Akademisierung."}];
+let idx=0, flipped=false;
+const cardEl=document.getElementById('card'), frontFace=document.getElementById('frontFace'), backFace=document.getElementById('backFace');
+const qText=document.getElementById('q-text'), aText=document.getElementById('a-text'), counter=document.getElementById('counter'), fill=document.getElementById('fill');
+const prevBtn=document.getElementById('prevBtn'), nextBtn=document.getElementById('nextBtn'), deck=document.getElementById('deck'), doneScreen=document.getElementById('doneScreen');
+function fitCard(){ frontFace.style.height='auto'; backFace.style.height='auto'; const h=Math.max(frontFace.offsetHeight,backFace.offsetHeight,300); frontFace.style.height=h+'px'; backFace.style.height=h+'px'; cardEl.style.height=h+'px'; }
+function render(){ const c=cards[idx]; qText.textContent=c.q; aText.textContent=c.a; counter.textContent=(idx+1)+' / '+cards.length; fill.style.width=((idx+1)/cards.length*100)+'%'; prevBtn.disabled=idx===0; nextBtn.textContent=idx===cards.length-1?'Fertig':'Weiter →'; cardEl.classList.remove('flipped'); flipped=false; requestAnimationFrame(fitCard); }
+cardEl.addEventListener('click',()=>{ flipped=!flipped; cardEl.classList.toggle('flipped',flipped); });
+prevBtn.addEventListener('click',()=>{ if(idx>0){idx--;render();} });
+nextBtn.addEventListener('click',()=>{ if(idx<cards.length-1){idx++;render();} else {deck.style.display='none';doneScreen.style.display='block';} });
+function restart(){ idx=0; deck.style.display='flex'; doneScreen.style.display='none'; render(); }
+window.addEventListener('resize',()=>{ if(deck.style.display!=='none') fitCard(); });
+window.addEventListener('load',fitCard);
+render();
+</script>
+</body>
+</html>
